@@ -11,6 +11,7 @@ class Pipeline:
         self.ollama_url = "http://host.docker.internal:11434/api/generate"
         self.model_name = "llama3"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.collections = ["document_collection", "document_collection2"]  # Add your second collection name here
 
     async def on_startup(self):
         print(f"on_startup:{__name__}")
@@ -70,11 +71,14 @@ class Pipeline:
         # Connect to Milvus
         self.connect_to_milvus()
 
-        # Retrieve relevant documents from Milvus
-        retrieved_docs = self.retrieve_from_milvus(collection_name="document_collection", query=user_message)
+        # Retrieve relevant documents from both Milvus collections
+        all_retrieved_docs = []
+        for collection_name in self.collections:
+            retrieved_docs = self.retrieve_from_milvus(collection_name=collection_name, query=user_message)
+            all_retrieved_docs.extend(retrieved_docs)
 
         # Format context for Ollama
-        context = self.format_context(retrieved_docs)
+        context = self.format_context(all_retrieved_docs)
 
         # Query Ollama for the final answer
         answer = self.query_ollama(user_message, context)

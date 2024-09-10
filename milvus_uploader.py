@@ -54,6 +54,12 @@ def process_docx(file_path):
             full_text.append(para.text.strip())
     return full_text
 
+# Read and process a plain text file
+def process_txt(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        text = file.read()
+    return [text]  # Return the full content as a list with a single element
+
 # Split text into chunks
 def split_into_chunks(text, max_chunk_size=500):
     chunks = []
@@ -70,15 +76,20 @@ def split_into_chunks(text, max_chunk_size=500):
     return chunks
 
 # Main function to process and upload documents
-def process_and_upload_documents(file_path, collection_name="document_collection"):
+def process_and_upload_documents(file_path, collection_name="document_collection2"):
     # Connect to Milvus
     connect_to_milvus()
     
     # Create collection
     collection = create_collection(collection_name, dim=384)  # 384 is the dimension for 'all-MiniLM-L6-v2' model
     
-    # Process the .docx file
-    paragraphs = process_docx(file_path)
+    # Determine file type and process accordingly
+    if file_path.endswith('.docx'):
+        paragraphs = process_docx(file_path)
+    elif file_path.endswith('.txt'):
+        paragraphs = process_txt(file_path)
+    else:
+        raise ValueError("Unsupported file format. Please upload a .docx or .txt file.")
     
     # Split paragraphs into chunks
     chunks = []
@@ -95,5 +106,5 @@ def process_and_upload_documents(file_path, collection_name="document_collection
 
 # Example usage
 if __name__ == "__main__":
-    file_path = '/Users/zfeldstein/rfp-chatbot/rfp-v11.docx'
+    file_path = '/Users/zfeldstein/rfp-chatbot/rancher.txt'  # Change this to your file path (can be .txt or .docx)
     process_and_upload_documents(file_path)
